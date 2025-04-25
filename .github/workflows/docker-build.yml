@@ -1,4 +1,4 @@
-name: Docker Build and Test
+name: MERN App CI/CD Pipeline
 
 on:
   push:
@@ -7,8 +7,37 @@ on:
     branches: [ main ]
 
 jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+        
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+        
+      - name: Run ESLint on frontend
+        run: cd frontend && npx eslint src/ --ext .js,.jsx
+        
+      - name: Run security audit on frontend
+        run: cd frontend && npm audit --audit-level=high
+        continue-on-error: true
+        
+      - name: Run security audit on backend
+        run: cd backend && npm audit --audit-level=high
+        continue-on-error: true
+
   build-and-test:
     runs-on: ubuntu-latest
+    needs: code-quality
     
     steps:
     - uses: actions/checkout@v3
@@ -18,6 +47,11 @@ jobs:
     
     - name: Build docker-compose services
       run: docker-compose build
+      
+    - name: Run tests in backend container
+      run: |
+        docker-compose run --rm backend npm test
+      continue-on-error: true  # If no tests exist yet, don't fail the build
     
     - name: Run docker-compose services
       run: docker-compose up -d
@@ -32,4 +66,87 @@ jobs:
         curl -s --retry 5 --retry-delay 5 --retry-connrefused http://localhost:4000/api/users || echo "Backend API not accessible"
     
     - name: Stop docker-compose services
-      run: docker-compose down 
+      run: docker-compose down
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Build frontend for S3 deployment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+      
+      - name: Build frontend production version
+        run: cd frontend && npm run build
+      
+      # Docker Hub Login
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      # Build and push backend Docker image to Docker Hub
+      - name: Build and push backend to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:${{ github.sha }}
+      
+      # Deploy frontend to S3
+      - name: Configure AWS credentials for S3
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Change to your preferred region
+      
+      - name: Deploy frontend to S3
+        run: |
+          aws s3 sync frontend/dist s3://${{ secrets.S3_BUCKET_NAME }} --delete
+      
+      - name: Invalidate CloudFront cache (optional)
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+        continue-on-error: true
+      
+      # Deploy backend to EC2
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Update environment variables
+            echo "MONGO=${{ secrets.MONGO_URI }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            
+            # Pull the latest image
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest
+            
+            # Stop any running container
+            docker stop phonenest-backend || true
+            docker rm phonenest-backend || true
+            
+            # Start the new container
+            docker run -d \
+              --name phonenest-backend \
+              --restart always \
+              -p 4000:4000 \
+              --env-file .env \
+              -v phonenest_uploads:/app/uploads \
+              ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest
+            
+            # Clean up old images (optional)
+            docker image prune -a -f 

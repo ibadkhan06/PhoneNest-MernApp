@@ -16,8 +16,8 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - MONGO=mongodb+srv://ibadkhan06:iffatbadar@cluster0.kk71xnf.mongodb.net/perecommerce?retryWrites=true&w=majority&appName=Cluster0
-      - JWT_SECRET=ibad ninja secret
+      - MONGO=${MONGO_URI:-mongodb+srv://ibadkhan06:iffatbadar@cluster0.kk71xnf.mongodb.net/perecommerce?retryWrites=true&w=majority&appName=Cluster0}
+      - JWT_SECRET=${JWT_SECRET:-ibad ninja secret}
     networks:
       - app-network
     volumes:

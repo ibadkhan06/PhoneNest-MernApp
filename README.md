@@ -50,9 +50,24 @@ docker-compose down -v
 
 - **backend-uploads**: Persists uploaded files
 
-## Next Steps
+## CI/CD Pipeline
 
-After containerization, we'll set up CI/CD pipelines and deploy to a cloud environment.
+The project includes a CI/CD pipeline using GitHub Actions for automated testing, building and deployment:
+
+### Architecture
+- **Frontend**: Deployed to AWS S3 with optional CloudFront CDN
+- **Backend**: Deployed to AWS EC2 as a Docker container
+- **Container Registry**: Docker Hub
+
+### Setup Instructions
+For detailed instructions on setting up the CI/CD pipeline, see [CI-CD-README.md](CI-CD-README.md).
+
+### Workflow
+1. Code quality checks and tests run on every push and pull request
+2. On merges to main branch, the pipeline:
+   - Builds and tests the application
+   - Deploys the frontend to S3
+   - Deploys the backend to EC2
 
 ## Features
 
