@@ -264,35 +264,12 @@ jobs:
         run: |
           if [ -n "${{ secrets.EC2_PASSWORD }}" ]; then
             echo "Trying password authentication as fallback..."
-            # Create a temporary script with the commands
-            cat > deploy_commands.sh << 'EOT'
-            # Update environment variables
-            echo "MONGO=${{ secrets.MONGO_URI }}" > .env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             
-            # Pull the latest image
-            docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
-            
-            # Stop any running container
-            docker stop phonenest-backend || true
-            docker rm phonenest-backend || true
-            
-            # Start the new container
-            docker run -d \
-              --name phonenest-backend \
-              --restart always \
-              -p 4000:4000 \
-              --env-file .env \
-              -v phonenest_uploads:/app/uploads \
-              ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
-            
-            # Clean up old images (optional)
-            docker image prune -a -f
-            EOT
+            # Create a one-line command string instead of a script
+            COMMANDS="echo MONGO=${{ secrets.MONGO_URI }} > .env && echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env && docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker stop phonenest-backend || true && docker rm phonenest-backend || true && docker run -d --name phonenest-backend --restart always -p 4000:4000 --env-file .env -v phonenest_uploads:/app/uploads ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker image prune -a -f"
             
             # Execute with password authentication
-            sshpass -p "${{ secrets.EC2_PASSWORD }}" scp -o StrictHostKeyChecking=no deploy_commands.sh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:~/
-            sshpass -p "${{ secrets.EC2_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "chmod +x ~/deploy_commands.sh && bash ~/deploy_commands.sh && rm ~/deploy_commands.sh"
+            sshpass -p "${{ secrets.EC2_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "$COMMANDS"
           else
             echo "Skipping password authentication (EC2_PASSWORD not set)"
           fi
@@ -302,33 +279,10 @@ jobs:
       - name: Deploy via key authentication
         run: |
           echo "Trying key authentication..."
-          # Create a temporary script with the commands
-          cat > deploy_commands.sh << 'EOT'
-          # Update environment variables
-          echo "MONGO=${{ secrets.MONGO_URI }}" > .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           
-          # Pull the latest image
-          docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
-          
-          # Stop any running container
-          docker stop phonenest-backend || true
-          docker rm phonenest-backend || true
-          
-          # Start the new container
-          docker run -d \
-            --name phonenest-backend \
-            --restart always \
-            -p 4000:4000 \
-            --env-file .env \
-            -v phonenest_uploads:/app/uploads \
-            ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
-          
-          # Clean up old images (optional)
-          docker image prune -a -f
-          EOT
+          # Create a one-line command string instead of a script
+          COMMANDS="echo MONGO=${{ secrets.MONGO_URI }} > .env && echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env && docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker stop phonenest-backend || true && docker rm phonenest-backend || true && docker run -d --name phonenest-backend --restart always -p 4000:4000 --env-file .env -v phonenest_uploads:/app/uploads ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker image prune -a -f"
           
           # Execute with key authentication
-          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cat > ~/deploy_commands.sh" < deploy_commands.sh
-          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "chmod +x ~/deploy_commands.sh && bash ~/deploy_commands.sh && rm ~/deploy_commands.sh"
+          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "$COMMANDS"
         continue-on-error: true 
