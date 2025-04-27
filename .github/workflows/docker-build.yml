@@ -200,15 +200,17 @@ jobs:
         continue-on-error: true
       
       # Debug Docker Hub username
-      - name: Debug Docker Hub username
+      - name: Set Docker Hub username
         run: |
-          echo "DOCKERHUB_USERNAME: ${DOCKERHUB_USERNAME}"
-          # Remove any whitespace
-          CLEAN_USERNAME=$(echo "$DOCKERHUB_USERNAME" | tr -d '[:space:]')
-          echo "CLEAN_USERNAME: ${CLEAN_USERNAME}"
-          echo "CLEAN_USERNAME=$CLEAN_USERNAME" >> $GITHUB_ENV
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "DOCKERHUB_USERNAME=invalid-username" >> $GITHUB_ENV
+            echo "Warning: DOCKERHUB_USERNAME is empty or not set"
+          else
+            # Remove any whitespace
+            CLEAN_USERNAME=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr -d '[:space:]')
+            echo "DOCKERHUB_USERNAME=$CLEAN_USERNAME" >> $GITHUB_ENV
+            echo "Docker Hub username set successfully"
+          fi
       
       # Build and push backend Docker image to Docker Hub
       - name: Build and push backend to Docker Hub
@@ -216,7 +218,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ env.CLEAN_USERNAME }}/phonenest-backend:latest
+          tags: ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
         continue-on-error: true
       
       # Deploy frontend to S3
@@ -238,20 +240,24 @@ jobs:
         continue-on-error: true
       
       # Deploy backend to EC2
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
+          chmod 600 ~/.ssh/ec2_key.pem
+          ssh-keygen -y -f ~/.ssh/ec2_key.pem > /dev/null || { echo "Invalid SSH key format"; cat ~/.ssh/ec2_key.pem | head -1; exit 1; }
+          echo "SSH key setup successful"
+        continue-on-error: true
+
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
-          script: |
+        run: |
+          ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
             # Update environment variables
             echo "MONGO=${{ secrets.MONGO_URI }}" > .env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             
             # Pull the latest image
-            docker pull ${{ env.CLEAN_USERNAME }}/phonenest-backend:latest
+            docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
             
             # Stop any running container
             docker stop phonenest-backend || true
@@ -264,8 +270,9 @@ jobs:
               -p 4000:4000 \
               --env-file .env \
               -v phonenest_uploads:/app/uploads \
-              ${{ env.CLEAN_USERNAME }}/phonenest-backend:latest
+              ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest
             
             # Clean up old images (optional)
             docker image prune -a -f
+          EOF
         continue-on-error: true 
