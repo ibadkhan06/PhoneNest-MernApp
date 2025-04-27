@@ -1,4 +1,4 @@
-export const BASE_URL= 'http://localhost:4000'
+export const BASE_URL= 'http://51.21.131.153:4000'
 export const PRODUCT_URL= '/api/products'
 export const UPLOAD_URL= '/api/uploads'
 export const CATEGORY_URL= '/api/categories'

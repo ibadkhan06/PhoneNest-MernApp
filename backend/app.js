@@ -17,7 +17,13 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost", "http://localhost:80"],
+  origin: [
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173", 
+    "http://localhost", 
+    "http://localhost:80",
+    "http://phonenest-frontend.s3-website-us-east-1.amazonaws.com"
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -50,7 +56,13 @@ const server = http.createServer(app);
 // Set up Socket.IO with CORS options
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost", "http://localhost:80"],
+    origin: [
+      "http://localhost:5173", 
+      "http://127.0.0.1:5173", 
+      "http://localhost", 
+      "http://localhost:80",
+      "http://phonenest-frontend.s3-website-us-east-1.amazonaws.com"
+    ],
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true

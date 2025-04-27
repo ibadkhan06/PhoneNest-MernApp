@@ -17,7 +17,11 @@ function Product() {
   return (
     <>
        <div className="w-full">
-                <img src="/picture.jpg" alt="Cover" className="w-full h-96"/>
+                <img 
+                  src="http://phonenest-frontend.s3-website-us-east-1.amazonaws.com/picture.jpg" 
+                  alt="Cover" 
+                  className="w-full h-96"
+                />
             </div>
     <div className="mt-8 mb-8 ml-3"> {/* Add margin-top for spacing from the top */}
       <h1 className="text-2xl font-bold mb-4 ml-3">Top Rated Products</h1> {/* Heading */}
