@@ -24,7 +24,7 @@ function Product() {
                 />
             </div>
     <div className="mt-8 mb-8 ml-3"> {/* Add margin-top for spacing from the top */}
-      <h1 className="text-2xl font-bold mb-4 ml-3">Top Rated Products</h1> {/* Heading */}
+      <h1 className="text-2xl font-bold mb-4 ml-3">Top Rated Phones</h1> {/* Heading */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {products.map((product) => (
           <ProductCard key={product._id} product={product} />

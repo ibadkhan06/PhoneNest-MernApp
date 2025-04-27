@@ -266,7 +266,7 @@ jobs:
             echo "Trying password authentication as fallback..."
             
             # Create a one-line command string instead of a script
-            COMMANDS="echo MONGO=${{ secrets.MONGO_URI }} > .env && echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env && docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker stop phonenest-backend || true && docker rm phonenest-backend || true && docker run -d --name phonenest-backend --restart always -p 4000:4000 --env-file .env -v phonenest_uploads:/app/uploads ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker image prune -a -f"
+            COMMANDS="echo 'MONGO=\"${{ secrets.MONGO_URI }}\"' > .env && echo 'JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"' >> .env && docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker stop phonenest-backend || true && docker rm phonenest-backend || true && docker run -d --name phonenest-backend --restart always -p 4000:4000 -e MONGO=\"${{ secrets.MONGO_URI }}\" -e JWT_SECRET=\"${{ secrets.JWT_SECRET }}\" -v phonenest_uploads:/app/uploads ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker image prune -a -f"
             
             # Execute with password authentication
             sshpass -p "${{ secrets.EC2_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "$COMMANDS"
@@ -281,7 +281,7 @@ jobs:
           echo "Trying key authentication..."
           
           # Create a one-line command string instead of a script
-          COMMANDS="echo MONGO=${{ secrets.MONGO_URI }} > .env && echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env && docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker stop phonenest-backend || true && docker rm phonenest-backend || true && docker run -d --name phonenest-backend --restart always -p 4000:4000 --env-file .env -v phonenest_uploads:/app/uploads ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker image prune -a -f"
+          COMMANDS="echo 'MONGO=\"${{ secrets.MONGO_URI }}\"' > .env && echo 'JWT_SECRET=\"${{ secrets.JWT_SECRET }}\"' >> .env && docker pull ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker stop phonenest-backend || true && docker rm phonenest-backend || true && docker run -d --name phonenest-backend --restart always -p 4000:4000 -e MONGO=\"${{ secrets.MONGO_URI }}\" -e JWT_SECRET=\"${{ secrets.JWT_SECRET }}\" -v phonenest_uploads:/app/uploads ${{ env.DOCKERHUB_USERNAME }}/phonenest-backend:latest && docker image prune -a -f"
           
           # Execute with key authentication
           ssh -i ~/.ssh/ec2_key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "$COMMANDS"
