@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePlaceOrderMutation } from '../../redux/api/OrderApiSlice';
 import { clearOrder } from '../../redux/features/cartSlice';

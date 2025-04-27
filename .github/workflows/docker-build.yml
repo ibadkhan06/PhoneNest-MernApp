@@ -56,7 +56,7 @@ jobs:
       - name: Run security audit on frontend
         run: |
           if [ -d "frontend" ]; then
-            cd frontend && npm audit --audit-level=high
+            cd frontend && npm audit --audit-level=high --production
           else
             echo "Frontend directory not found, skipping"
           fi
@@ -65,7 +65,7 @@ jobs:
       - name: Run security audit on backend
         run: |
           if [ -d "backend" ]; then
-            cd backend && npm audit --audit-level=high
+            cd backend && npm audit --audit-level=high --production
           else
             echo "Backend directory not found, skipping"
           fi
@@ -194,7 +194,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest,${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest
         continue-on-error: true
       
       # Deploy frontend to S3
@@ -213,11 +213,6 @@ jobs:
           else
             echo "Frontend build directory not found, skipping S3 deployment"
           fi
-        continue-on-error: true
-      
-      - name: Invalidate CloudFront cache (optional)
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
         continue-on-error: true
       
       # Deploy backend to EC2

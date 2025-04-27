@@ -1,5 +1,4 @@
-import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, removeFromCart, } from '../../redux/features/cartSlice';
 import { FaTrashAlt } from 'react-icons/fa'; // Import delete icon from react-icons

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../../redux/features/authSlice';
+
 function Header() {
     const navigate = useNavigate();
     const dispatch=useDispatch()

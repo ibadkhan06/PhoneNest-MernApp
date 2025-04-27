@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link } from 'react-router-dom';
 
 function Footer(){
@@ -17,10 +16,7 @@ function Footer(){
             </div>
         </div>
     </footer>
-);
-};
-
-
-
+  )
+}
 
 export default Footer

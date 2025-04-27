@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 
 services:
   frontend:
@@ -12,21 +12,26 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - phonenest_uploads:/app/uploads
     environment:
-      - MONGO=${MONGO_URI:-mongodb+srv://ibadkhan06:iffatbadar@cluster0.kk71xnf.mongodb.net/perecommerce?retryWrites=true&w=majority&appName=Cluster0}
-      - JWT_SECRET=${JWT_SECRET:-ibad ninja secret}
+      - NODE_ENV=development
+      - MONGO=${MONGO_URI:-mongodb+srv://default:password@cluster0.example.mongodb.net/phonenest?retryWrites=true&w=majority}
+      - JWT_SECRET=${JWT_SECRET:-yoursecretkey}
+    restart: unless-stopped
     networks:
       - app-network
-    volumes:
-      - backend-uploads:/app/uploads
-    restart: unless-stopped
 
 networks:
   app-network:
     driver: bridge
 
 volumes:
-  backend-uploads: 
+  phonenest_uploads: 
