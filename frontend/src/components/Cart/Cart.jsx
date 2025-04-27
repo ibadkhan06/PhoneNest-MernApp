@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, removeFromCart, } from '../../redux/features/cartSlice';
 import { FaTrashAlt } from 'react-icons/fa'; // Import delete icon from react-icons
 import { Link } from 'react-router-dom';
+import { BASE_URL } from '../../redux/constants';
+
 function Cart() {
   const { cartItems, totalPrice } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
@@ -29,7 +31,7 @@ function Cart() {
             <div key={item._id} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg shadow-md">
               {/* Product Information */}
               <div className="flex items-center w-2/4">
-                <img src={`http://localhost:4000${item.image}`} alt={item.name} className="w-24 h-24 object-cover mr-4" />
+                <img src={`${BASE_URL}${item.image}`} alt={item.name} className="w-24 h-24 object-cover mr-4" />
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold">{item.name}</h2>
                   <p className="text-md text-blue-600">PKR {item.price}</p>

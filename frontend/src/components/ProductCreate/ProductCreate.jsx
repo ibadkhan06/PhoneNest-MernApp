@@ -2,7 +2,7 @@ import {useUploadProductImageMutation,useCreateProductMutation}from "../../redux
 import {useGetCategoriesQuery}from "../../redux/api/CategoryApiSlice"
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { BASE_URL } from "../../redux/constants";
 import { toast } from "react-toastify";
 
 function ProductCreate(){
@@ -69,7 +69,7 @@ return (
         {imageUrl && (
           <div className="text-center mb-4">
             <img
-              src={`http://localhost:4000${imageUrl}`}
+              src={`${BASE_URL}${imageUrl}`}
               alt="product"
               className="block mx-auto max-h-[200px]"
             />
@@ -156,7 +156,7 @@ return (
 export default ProductCreate;
 
 // const [CreateProduct] = useCreateProductMutation();
-// This hook is likely a custom hook from a library like RTK Query, which provides a mutation function for creating a product. You are using array destructuring to extract the mutation function CreateProduct because the hook returns an array where the first element is the function to call to perform the mutation. The comment about sending data to the hook is correct because typically, you'll call CreateProduct with the data you want to send.
+// This hook is likely a custom hook from a library like RTK Query, which provides a mutation function for creating a product. You are using array destructuring to extract the mutation function CreateProduct because the hook returns an array where the first element enables us to perform mutation. The comment about sending data to the hook is correct because typically, you'll call CreateProduct with the data you want to send.
 
 // const { data: categories } = useGetCategoriesQuery();
 // This hook is likely a custom hook that fetches data (categories in this case) from an API. You are using object destructuring to extract the data property from the result of the hook call and renaming it to categories. This is a common pattern when you need to access specific properties from an object returned by a query hook.

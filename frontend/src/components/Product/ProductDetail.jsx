@@ -8,8 +8,9 @@ import Reviews from './Reviews';
 import { useFetchReviews } from './useFetchReviews';
 import io from 'socket.io-client';
 import debounce from 'lodash.debounce'; // Import debounce if needed
+import { BASE_URL } from '../../redux/constants';
 
-const socket = io('http://localhost:4000');
+const socket = io(BASE_URL);
 
 function ProductDetail() {
   const { id } = useParams();
@@ -118,8 +119,8 @@ const handleTyping = () => {
       <div className="container mx-auto p-4 bg-white shadow-lg rounded-lg">
         <div className="flex flex-col md:flex-row gap-6">
           <img
-            src={`http://localhost:4000${product.image}`}
-            srcSet={`http://localhost:4000${product.image} 1x, http://localhost:4000${product.image.replace('.jpg', '@2x.jpg')} 2x`}
+            src={`${BASE_URL}${product.image}`}
+            srcSet={`${BASE_URL}${product.image} 1x, ${BASE_URL}${product.image.replace('.jpg', '@2x.jpg')} 2x`}
             alt={product.name}
             className="w-full md:w-1/2 h-64 object-cover rounded-lg border border-gray-200 mb-4 md:mb-0"
           />

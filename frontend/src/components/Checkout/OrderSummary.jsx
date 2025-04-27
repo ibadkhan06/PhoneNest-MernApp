@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePlaceOrderMutation } from '../../redux/api/OrderApiSlice';
 import { clearOrder } from '../../redux/features/cartSlice';
+import { BASE_URL } from '../../redux/constants';
 
 function OrderSummary() {
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -35,7 +36,7 @@ function OrderSummary() {
             <h3 className="text-xl font-semibold mt-10 mb-2">Order Details</h3>
             {cart.cartItems.map((item) => (
               <div key={item._id} className="flex items-center justify-between mb-4 p-4 bg-gray-100 rounded-md shadow-sm">
-                <img src={`http://localhost:4000${item.image}`} alt={item.name} className="w-24 h-24 object-cover mr-4" />
+                <img src={`${BASE_URL}${item.image}`} alt={item.name} className="w-24 h-24 object-cover mr-4" />
                 <div className="flex-1">
                   <h4 className="text-lg font-semibold">{item.name}</h4>
                   <p className="text-md text-gray-600">Quantity: {item.quantity}</p>
