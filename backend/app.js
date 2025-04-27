@@ -47,6 +47,11 @@ app.use('/api/categories', categories);
 app.use('/api/products', products);
 app.use('/api/orders', orders);
 
+// Add a status endpoint for testing/monitoring
+app.get('/api/status', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
+});
+
 // Handle 404 errors
 app.use(notfound);
 
