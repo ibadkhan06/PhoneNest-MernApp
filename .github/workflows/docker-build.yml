@@ -199,13 +199,24 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
         continue-on-error: true
       
+      # Debug Docker Hub username
+      - name: Debug Docker Hub username
+        run: |
+          echo "DOCKERHUB_USERNAME: ${DOCKERHUB_USERNAME}"
+          # Remove any whitespace
+          CLEAN_USERNAME=$(echo "$DOCKERHUB_USERNAME" | tr -d '[:space:]')
+          echo "CLEAN_USERNAME: ${CLEAN_USERNAME}"
+          echo "CLEAN_USERNAME=$CLEAN_USERNAME" >> $GITHUB_ENV
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      
       # Build and push backend Docker image to Docker Hub
       - name: Build and push backend to Docker Hub
         uses: docker/build-push-action@v4
         with:
           context: ./backend
           push: true
-          tags: "${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest"
+          tags: ${{ env.CLEAN_USERNAME }}/phonenest-backend:latest
         continue-on-error: true
       
       # Deploy frontend to S3
@@ -233,13 +244,14 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
             # Update environment variables
             echo "MONGO=${{ secrets.MONGO_URI }}" > .env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             
             # Pull the latest image
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest
+            docker pull ${{ env.CLEAN_USERNAME }}/phonenest-backend:latest
             
             # Stop any running container
             docker stop phonenest-backend || true
@@ -252,7 +264,7 @@ jobs:
               -p 4000:4000 \
               --env-file .env \
               -v phonenest_uploads:/app/uploads \
-              ${{ secrets.DOCKERHUB_USERNAME }}/phonenest-backend:latest
+              ${{ env.CLEAN_USERNAME }}/phonenest-backend:latest
             
             # Clean up old images (optional)
             docker image prune -a -f
